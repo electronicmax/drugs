@@ -15,10 +15,10 @@ define(['utils'], function(u) {
 		var xscale = d3.scale.linear().domain([0,months.length]).range([0,width]);		
 		months.sort();
 		var color=d3.scale.linear().domain([0,_(by_drug).keys().length]).range(["black","orange"]);
+		var drugs = _(by_drug).keys();
 		
-		_(by_drug).values().map(function(bytime, drugname) {
-			console.log('drugname : ', drugname, color(drugname));
-			
+		_(by_drug).map(function(bytime, drugname) {
+			var drug_i = drugs.indexOf(drugname);
 			var vals = months.map(function(month) { return bytime[month.toString()]; });
 			var linecls = 'class-'+u.hash(drugname);
 			var line = d3.svg.line()
@@ -26,13 +26,26 @@ define(['utils'], function(u) {
 				.y(function(d,i) { return yscale(d); })
 				.interpolate("basis");
 
+			// console.log('drugname ', drugname);
+
 			d3.select(el).selectAll('line.'+linecls).data([vals])
 			 	.enter()
 			 	.append('svg:path')
 			 	.attr('d', line)
 				.attr('color',"black")
-				.attr('stroke',color(drugname)).attr('fill','none').attr('stroke-width',1);
+				.attr('stroke',color(drug_i)).attr('fill','none').attr('stroke-width',1);
+			
+			d3.select(el).selectAll('line.'+linecls).data([vals])
+				.enter()
+				.append('svg:text')
+			    .text(drugname)
+				.attr('fill',color(drug_i))			
+				.attr('x', xscale(0))
+				.attr('y', yscale(vals[0]));
+			
 		});
+
+		
 	};
 
 	$.get('data/results-time.txt').then(
